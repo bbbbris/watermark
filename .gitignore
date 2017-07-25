@@ -1,0 +1,5 @@
+/target/*
+!/target/classes
+
+/target/classes/*
+!/target/classes/tessdata
