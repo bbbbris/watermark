@@ -42,7 +42,7 @@ public class Text {
 		endLineIndex = lineIndex.getValue();
 	}
 
-	public Text(String[] lines, MutableInt lineIndex, double[] watermark, MutableInt watermarkIndex) {
+	public Text(String[] lines, MutableInt lineIndex, double[] watermark, MutableInt watermarkIndex, double difference) {
 //		System.out.println("\tText");
 
 		showTexts = new ArrayList<>();
@@ -53,7 +53,7 @@ public class Text {
 			Matcher matcher = pattern.matcher(lines[lineIndex.getValue()]);
 
 			if (matcher.find()) {
-				showTexts.add(new ShowText(lines, lineIndex, watermark, watermarkIndex));
+				showTexts.add(new ShowText(lines, lineIndex, watermark, watermarkIndex, difference));
 			}
 		}
 	}

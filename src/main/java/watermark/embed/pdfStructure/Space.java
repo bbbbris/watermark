@@ -39,8 +39,8 @@ public class Space {
 		cumulativeShift.add(space.length());
 	}
 
-	public void lengthen() {
-		this.length = (int) (this.length * 1.4);
+	public void lengthen(double difference) {
+		this.length = (int) (this.length * difference);
 	}
 
 	public void shift() {

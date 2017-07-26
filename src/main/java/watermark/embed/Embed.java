@@ -15,9 +15,9 @@ public class Embed {
 		DOCUMENT_NAME = dOCUMENT_NAME;
 	}
 
-	public void embed(int[] watermark) {
+	public void embed(int[] watermark, double difference) {
 		comparison = new Comparison();
-		document = new Document(WORKING_LOCATION + DOCUMENT_NAME, watermark, comparison);
+		document = new Document(WORKING_LOCATION + DOCUMENT_NAME, watermark, comparison, difference);
 	}
 
 	public int getNumberOfPages() {

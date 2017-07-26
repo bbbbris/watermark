@@ -46,7 +46,8 @@ public class ShowText {
 		}
 	}
 
-	public ShowText(String[] lines, MutableInt lineIndex, double[] watermark, MutableInt watermarkIndex) {
+	public ShowText(String[] lines, MutableInt lineIndex, double[] watermark, MutableInt watermarkIndex,
+			double difference) {
 //		System.out.println("\t\tShowText - " + lines[lineIndex.getValue()]);
 
 		spaces = new ArrayList<>();
@@ -66,7 +67,7 @@ public class ShowText {
 
 		for (int i = 0; i < spaces.size() && watermarkIndex.getValue() < watermark.length; i++) {
 			if (watermark[watermarkIndex.getValue()] == 1) {
-				spaces.get(i).lengthen();
+				spaces.get(i).lengthen(difference);
 			}
 			watermarkIndex.increment();
 		}

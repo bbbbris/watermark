@@ -94,7 +94,7 @@ public class Document {
 		}
 	}
 
-	public Document(String path, int[] watermark, Comparison comparison) {
+	public Document(String path, int[] watermark, Comparison comparison, double difference) {
 		workingDirectory = path.substring(0, path.lastIndexOf("/")) + "/";
 		documentName = path.substring(path.lastIndexOf("/"));
 
@@ -115,7 +115,7 @@ public class Document {
 					byte[] data = PdfReader.getStreamBytes(stream);
 					String pageStream = new String(data);
 					// System.out.println(pageStream);
-					String watermarked = embed(pageStream, watermarkEncoded);
+					String watermarked = embed(pageStream, watermarkEncoded, difference);
 					stream.setData(watermarked.getBytes());
 				}
 			}
@@ -184,9 +184,9 @@ public class Document {
 		return null;
 	}
 
-	private String embed(String pageStream, double[] watermarkEncoded) {
+	private String embed(String pageStream, double[] watermarkEncoded, double difference) {
 		Page page = new Page(pageStream);
-		String watermarkedPage = page.embed(watermarkEncoded);
+		String watermarkedPage = page.embed(watermarkEncoded, difference);
 		return watermarkedPage;
 	}
 

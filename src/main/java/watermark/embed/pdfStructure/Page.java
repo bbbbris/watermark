@@ -20,7 +20,7 @@ public class Page {
 		// }
 	}
 
-	public String embed(double[] watermarkEncoded) {
+	public String embed(double[] watermarkEncoded, double difference) {
 //		System.out.println("Page");
 		
 		texts = new ArrayList<>();
@@ -33,7 +33,7 @@ public class Page {
 			Matcher matcher = pattern.matcher(currentLine);
 
 			while (matcher.find()) {
-				texts.add(new Text(lines, lineIndex, watermarkEncoded, watermarkIndex));
+				texts.add(new Text(lines, lineIndex, watermarkEncoded, watermarkIndex, difference));
 			}
 		}
 		String watermarked = flatten(lines);

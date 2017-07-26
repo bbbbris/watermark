@@ -15,7 +15,7 @@ public class Test {
 		double difference = 1.4;
 
 		Embed embed = new Embed(WORKING_LOCATION, documentName);
-		embed.embed(watermark);
+		embed.embed(watermark, difference);
 		Comparison comparison = embed.getComparison();
 		
 		Scanner scanner = new Scanner();
