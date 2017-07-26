@@ -51,6 +51,7 @@ import org.jsoup.select.Elements;
 import org.opencv.core.Mat;
 
 import flanagan.analysis.CurveSmooth;
+import watermark.test.common.Comparison;
 
 public class Document {
 	private BufferedImage document;
@@ -74,7 +75,7 @@ public class Document {
 		locationsWatermarked = new ArrayList<>();
 
 		for (int i = 1; i <= numberOfPages; i++) {
-			locationsOriginal.add(fullPath.substring(0, fullPath.length() - 4) + "_O-" + i + ".png");
+			locationsOriginal.add(fullPath.substring(0, fullPath.length() - 4) + "-" + i + ".png");
 			// System.out.println(locationsOriginal.get(locationsOriginal.size()
 			// - 1));
 			locationsWatermarked.add(fullPath.substring(0, fullPath.length() - 4) + "_W-" + i + ".png");
@@ -133,7 +134,7 @@ public class Document {
 		return watermark;
 	}
 
-	public double[] extractWatermarkTess() {
+	public double[] extractWatermarkTess(Comparison comparison) {
 
 		// GET LENGTHS FROM PAGES
 		List<int[][]> lengthsOriginal = new ArrayList<>();
@@ -160,22 +161,12 @@ public class Document {
 
 		double[] probabilities = getProbabilities(differences, weights, maxLength);
 
-		double[] watermark = decode(probabilities);
+		double[] watermark = decode(probabilities, comparison);
 
 		return watermark;
 	}
 
-	private double[] decode(double[] probabilities) {
-
-		double[] original = { 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1,
-				0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0,
-				0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1,
-				1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-				0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0,
-				1, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1,
-				1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0,
-				0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1,
-				0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0 };
+	private double[] decode(double[] probabilities, Comparison comparison) {
 
 		try {
 			MatlabEngine eng = MatlabEngine.startMatlab();
@@ -184,14 +175,7 @@ public class Document {
 
 			probabilities = java.util.Arrays.copyOfRange(probabilities, 0, 288);
 
-			// Count errors in detection
-			int error = 0;
-			for (int i = 0; i < probabilities.length; i++) {
-				if ((int) Math.round(probabilities[i]) != original[i]) {
-					error++;
-				}
-			}
-			System.out.println("ERRORS IN DETECTION: " + error);
+			comparison.setDetectedLDPC(probabilities.clone());
 
 			for (int i = 0; i < probabilities.length; i++) {
 				probabilities[i] = probabilities[i] * (-2) + 1;
@@ -204,35 +188,22 @@ public class Document {
 
 			double[] LDPCdecoded = eng.feval("decode", probabilities);
 
+			comparison.setDetecetdHadamard(LDPCdecoded);
+
 			// for (double e : LDPCdecoded) {
 			// System.out.print(e + " ");
 			// }
 			// System.out.println();
-
-			// Count errors in LDPC
-			double[] original2 = { 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1,
-					1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1,
-					1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
-					1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1,
-					1 };
-
-			int error2 = 0;
-			for (int i = 0; i < original2.length; i++) {
-				if (LDPCdecoded[i] != original2[i]) {
-					error2++;
-				}
-			}
-			System.out.println("ERRORS IN LDPC: " + error2);
 
 			String LDPCDecodedString = "";
 			for (int i = 0; i < 128; i++) {
 				LDPCDecodedString += (int) LDPCdecoded[i];
 			}
 			Hadamard hadamard = new Hadamard(7);
-			System.out.println(LDPCDecodedString.length());
-			System.out.println(LDPCDecodedString);
 			String hadamardDecoded = hadamard.decode(LDPCDecodedString);
 			System.out.println(hadamardDecoded);
+			
+			comparison.setDetectedID(hadamardDecoded);
 
 			eng.close();
 

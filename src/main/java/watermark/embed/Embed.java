@@ -1,11 +1,14 @@
 package watermark.embed;
 
 import watermark.embed.pdfStructure.Document;
+import watermark.test.common.Comparison;
 
 public class Embed {
 
 	private String WORKING_LOCATION = "/Users/abrisnagy/Documents/development/watermark-embed/test_documents/";
 	private String DOCUMENT_NAME = "test_O.pdf";
+	private Document document;
+	private Comparison comparison;
 
 	public Embed(String wORKING_LOCATION, String dOCUMENT_NAME) {
 		WORKING_LOCATION = wORKING_LOCATION;
@@ -13,7 +16,16 @@ public class Embed {
 	}
 
 	public void embed(int[] watermark) {
-		@SuppressWarnings("unused")
-		Document docu = new Document(WORKING_LOCATION + DOCUMENT_NAME, watermark, "Tesseract");
+		comparison = new Comparison();
+		document = new Document(WORKING_LOCATION + DOCUMENT_NAME, watermark, comparison);
 	}
+
+	public int getNumberOfPages() {
+		return document.getNumberOfPages();
+	}
+	
+	public Comparison getComparison(){
+		return comparison;
+	}
+
 }

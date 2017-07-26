@@ -28,6 +28,7 @@ import com.itextpdf.text.pdf.PdfStamper;
 import com.mathworks.engine.MatlabEngine;
 
 import watermark.embed.util.Hadamard;
+import watermark.test.common.Comparison;
 
 public class Document {
 
@@ -38,6 +39,7 @@ public class Document {
 
 	private String workingDirectory;
 	private String documentName;
+	private int numberOfPages;
 
 	public static final String END_OF_FILE_MARKER = "%%EOF";
 	public static final String START_OF_OBJECT_MARKER = "obj";
@@ -92,19 +94,20 @@ public class Document {
 		}
 	}
 
-	public Document(String path, int[] watermark, String dummy) {
+	public Document(String path, int[] watermark, Comparison comparison) {
 		workingDirectory = path.substring(0, path.lastIndexOf("/")) + "/";
 		documentName = path.substring(path.lastIndexOf("/"));
 
-		double[] watermarkEncoded = encode(watermark);
+		double[] watermarkEncoded = encode(watermark, comparison);
 
 		String src = path;
-		String dest = src.substring(0, src.length() - 5) + "W.pdf";
+		String dest = src.substring(0, src.length() - 4) + "_W.pdf";
 
 		try {
 			PdfReader reader;
 			reader = new PdfReader(src);
-			for (int i = 1; i <= reader.getNumberOfPages(); i++) {
+			numberOfPages = reader.getNumberOfPages();
+			for (int i = 1; i <= numberOfPages; i++) {
 				PdfDictionary dict = reader.getPageN(i);
 				PdfObject object = dict.getDirectObject(PdfName.CONTENTS);
 				if (object instanceof PRStream) {
@@ -124,7 +127,9 @@ public class Document {
 		}
 	}
 
-	private double[] encode(int[] watermark) {
+	private double[] encode(int[] watermark, Comparison comparison) {
+
+		comparison.setEmbeddedID(watermark);
 
 		try {
 			// Hadamard
@@ -147,16 +152,21 @@ public class Document {
 
 			int[] hadamardEncoded = new int[144];
 			for (int i = 0; i < hadamardEncoded.length; i++) {
-				hadamardEncoded[i] = Integer.parseInt(hadamardEncodedString.substring(i, i+1));
+				hadamardEncoded[i] = Integer.parseInt(hadamardEncodedString.substring(i, i + 1));
 			}
-			
+
+			comparison.setEmbeddedHadamard(hadamardEncoded);
 
 			// LDPC
 			MatlabEngine eng = MatlabEngine.startMatlab();
-			eng.feval("addpath", "/Users/abrisnagy/Documents/development/watermark/src/main/resources/LDPC/".toCharArray());
-			eng.feval("addpath", "/Users/abrisnagy/Documents/development/watermark/src/main/resources/LDPC/codes".toCharArray());
+			eng.feval("addpath",
+					"/Users/abrisnagy/Documents/development/watermark/src/main/resources/LDPC/".toCharArray());
+			eng.feval("addpath",
+					"/Users/abrisnagy/Documents/development/watermark/src/main/resources/LDPC/codes".toCharArray());
 
 			double[] LDPCencoded = eng.feval("encode", hadamardEncoded);
+
+			comparison.setEmbeddedLDPC(LDPCencoded);
 
 			System.out.println(LDPCencoded.length);
 			for (int i = 0; i < LDPCencoded.length; i++) {
@@ -244,6 +254,14 @@ public class Document {
 
 	public void setXrefTable(CrossReferenceTable xrefTable) {
 		this.xrefTable = xrefTable;
+	}
+
+	public int getNumberOfPages() {
+		return numberOfPages;
+	}
+
+	public void setNumberOfPages(int numberOfPages) {
+		this.numberOfPages = numberOfPages;
 	}
 
 	@Override
