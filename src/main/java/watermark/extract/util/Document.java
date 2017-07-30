@@ -143,6 +143,7 @@ public class Document {
 		for (int i = 0; i < numberOfPages; i++) {
 			lengthsOriginal.add(getLengths(locationsOriginal.get(i)));
 			lengthsWatermarked.add(getLengths(locationsWatermarked.get(i)));
+			System.out.println("Finished extraction on " + (i + 1) + " pages.");
 		}
 
 		// GET DIFFERENCES: WATERMARKED - ORIGINAL
@@ -202,7 +203,7 @@ public class Document {
 			Hadamard hadamard = new Hadamard(7);
 			String hadamardDecoded = hadamard.decode(LDPCDecodedString);
 			System.out.println(hadamardDecoded);
-			
+
 			comparison.setDetectedID(hadamardDecoded);
 
 			eng.close();

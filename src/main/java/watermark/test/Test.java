@@ -13,19 +13,22 @@ public class Test {
 		String documentName = "test.pdf";
 		int[] watermark = { 1, 0, 1, 0, 1, 1, 0 };
 		double difference = 1.4;
+		double stdDev = 16777216 * 0.001;
+		int scanquality = 100;
+		int sizeOfSmear = 40;
 
 		Embed embed = new Embed(WORKING_LOCATION, documentName);
 		embed.embed(watermark, difference);
 		Comparison comparison = embed.getComparison();
-		
+
 		Scanner scanner = new Scanner();
-		scanner.scan(WORKING_LOCATION, documentName);
+		scanner.scan(WORKING_LOCATION, documentName, stdDev, scanquality, sizeOfSmear);
 
 		int NUMBER_OF_PAGES = embed.getNumberOfPages();
 
 		Extract extract = new Extract(WORKING_LOCATION, documentName, NUMBER_OF_PAGES, comparison);
 		extract.extract();
-		
+
 		comparison.compare();
 	}
 }
