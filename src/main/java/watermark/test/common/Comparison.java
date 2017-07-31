@@ -81,7 +81,7 @@ public class Comparison {
 
 	private void compareID() {
 		int errorCountID = 0;
-		for (int i = 0; i < detectedID.length; i++) {
+		for (int i = 0; i < detectedID.length && i < embeddedID.length; i++) {
 			if (detectedID[i] != embeddedID[i]) {
 				errorCountID++;
 			}
@@ -102,7 +102,7 @@ public class Comparison {
 	private void compareLDPC() {
 		int errorCountLDPC = 0;
 		for (int i = 0; i < detectedLDPC.length; i++) {
-			if ( (int) Math.round(detectedLDPC[i]) != (int) embeddedLDPC[i]) {
+			if ((int) Math.round(detectedLDPC[i]) != (int) embeddedLDPC[i]) {
 				System.out.println((int) Math.round(detectedLDPC[i]) + "\t" + (int) embeddedLDPC[i]);
 				errorCountLDPC++;
 			}
