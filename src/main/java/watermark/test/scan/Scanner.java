@@ -24,11 +24,12 @@ public class Scanner {
 			PDFRenderer pdfRenderer = new PDFRenderer(document);
 			for (int page = 0; page < document.getNumberOfPages(); ++page) {
 
-				// BufferedImage bim = addSmearsParse(400, 10,
-				// addSmearsParse(500, 40,
-				// pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY)));
+				BufferedImage bim = addSmearsParse(100, 10,
+						addSmearsParse(150, 40, pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY)));
 
-				BufferedImage bim = addSmearsPoint(40, pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY));
+//				BufferedImage bim = addSmearsPoint(40, pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY));
+//				BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY);
+
 
 				ImageIOUtil.writeImage(bim,
 						watermarkedDocument.substring(0, watermarkedDocument.length() - 4) + "-" + (page + 1) + ".png",

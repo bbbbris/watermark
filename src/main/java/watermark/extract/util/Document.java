@@ -12,9 +12,11 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -38,6 +40,7 @@ import org.bytedeco.javacpp.opencv_imgcodecs.*;
 import org.bytedeco.javacpp.*;
 import org.xml.sax.*;
 
+import com.mathworks.engine.EngineException;
 import com.mathworks.engine.MatlabEngine;
 
 import static org.bytedeco.javacpp.lept.*;
@@ -151,6 +154,11 @@ public class Document {
 		int[][] lengthsW = new int[numberOfPages][];
 		List<List<Integer>> differences = getDifferences(lengthsO, lengthsW, lengthsOriginal, lengthsWatermarked);
 
+		// ALIGN
+		// List<int[][]> diff = getDiff(lengthsO, lengthsW, lengthsOriginal,
+		// lengthsWatermarked);
+		// List<List<Integer>> alignedDifferences = align(diff, differences);
+
 		// GET WEIGHTS
 		List<Double> weights = getWeights(lengthsOriginal, lengthsWatermarked, lengthsO, lengthsW);
 
@@ -165,6 +173,152 @@ public class Document {
 		double[] watermark = decode(probabilities, comparison);
 
 		return watermark;
+	}
+
+	private List<int[][]> getDiff(int[][] lengthsO, int[][] lengthsW, List<int[][]> lengthsOriginal,
+			List<int[][]> lengthsWatermarked) {
+		List<int[][]> differences = new ArrayList<>();
+		for (int i = 0; i < numberOfPages; i++) {
+
+			lengthsO[i] = new int[lengthsOriginal.get(i).length];
+			lengthsW[i] = new int[lengthsWatermarked.get(i).length];
+			int numberOfLines = Math.min(lengthsOriginal.get(i).length, lengthsWatermarked.get(i).length);
+			int[][] diffInPage = new int[numberOfLines][];
+
+			for (int j = 0; j < numberOfLines; j++) {
+				// int numberOfSpaces =
+				// Math.min(lengthsOriginal.get(i)[j].length,
+				// lengthsWatermarked.get(i)[j].length);
+				int numberOfSpaces = lengthsOriginal.get(i)[j].length;
+				int[] diffInLine = new int[numberOfSpaces];
+
+				for (int k = 0; k < numberOfSpaces && k < lengthsWatermarked.get(i)[j].length; k++) {
+					diffInLine[k] = Math.max(0, lengthsWatermarked.get(i)[j][k] - lengthsOriginal.get(i)[j][k]);
+				}
+
+				diffInPage[j] = diffInLine;
+			}
+			differences.add(diffInPage);
+		}
+
+		return differences;
+	}
+
+	private List<List<Integer>> align(List<int[][]> differences, List<List<Integer>> flatDifferences) {
+		List<List<Integer>> consensusDifferences = new ArrayList<>();
+		try {
+			List<List<Integer>> sequences = new ArrayList<>();
+			PrintWriter writer = new PrintWriter("/Users/abrisnagy/Documents/development/"
+					+ "watermark/src/main/resources/test documents/sequences.txt", "UTF-8");
+			String sequenceInPage;
+
+			// multialign
+			for (int i = 0; i < differences.size(); i++) {
+				sequenceInPage = "";
+				writer.println(">PAGE " + i);
+				for (int j = 0; j < differences.get(i).length; j++) {
+					int maxSpaceLengthInLine = 0;
+					for (int k = 0; k < differences.get(i)[j].length; k++) {
+						if (maxSpaceLengthInLine < differences.get(i)[j][k]) {
+							maxSpaceLengthInLine = differences.get(i)[j][k];
+						}
+					}
+
+					for (int k = 0; k < differences.get(i)[j].length; k++) {
+						if (maxSpaceLengthInLine * 0.5 < differences.get(i)[j][k]) {
+							// this is a long space (1)
+							sequenceInPage += "A";
+							// System.out.print(differences.get(i)[j][k] + "A\t");
+						} else {
+							// this is a short space (0)
+							sequenceInPage += "T";
+							// System.out.print(differences.get(i)[j][k] + "T\t");
+						}
+					}
+					// sequenceInPage += "\t";
+				}
+				writer.print(sequenceInPage + "\n");
+				// System.out.println();
+			}
+			writer.close();
+
+			MatlabEngine eng = MatlabEngine.startMatlab();
+			eng.feval("addpath", "/Users/abrisnagy/Documents/development/watermark/src/main/resources/test documents/"
+					.toCharArray());
+
+			double[] dummy = eng.feval("align");
+
+			// match aligned to original
+			File file = new File(
+					"/Users/abrisnagy/Documents/development/watermark/src/main/resources/test documents/aligned.txt");
+			BufferedReader reader = new BufferedReader(new java.io.FileReader(file));
+
+			String line;
+			List<String> pages = new ArrayList<>();
+			while ((line = reader.readLine()) != null) {
+				pages.add(line);
+//				System.out.println(line);
+			}
+			
+			//align differences according to multialign
+			System.out.println();
+			List<List<Integer>> alignedDifferences = new ArrayList<>();
+
+			for (int i = 0; i < pages.size() - 1; i++) {
+				List<Integer> alignedLine = new ArrayList<>();
+				int k = 0;
+				for (int j = 0; j < pages.get(i).length() && j < flatDifferences.get(i).size(); j++) {
+					if (pages.get(i).charAt(j) == '-') {
+						alignedLine.add(-1);
+					} else {
+						alignedLine.add(flatDifferences.get(i).get(k));
+						k++;
+					}
+				}
+				alignedDifferences.add(alignedLine);
+			}
+
+			// prepare for merge according to consensus sequence
+//			System.out.println();
+			String consensusSequence = pages.get(pages.size() - 1);
+
+			for (int i = 0; i < alignedDifferences.size(); i++) {
+				List<Integer> alignedLineConsensus = new ArrayList<>();
+				for (int j = 0; j < consensusSequence.length(); j++) {
+					if (consensusSequence.charAt(j) != '-') {
+						if(j < alignedDifferences.get(i).size()){
+							alignedLineConsensus.add(alignedDifferences.get(i).get(j));
+						} else {
+							alignedLineConsensus.add(-1);
+						}
+					}
+				}
+				consensusDifferences.add(alignedLineConsensus);
+			}
+			
+			// print
+			// for(int i = 0; i < alignedDifferences.size(); i++){
+			// for (int j = 0; j < alignedDifferences.get(i).size(); j++) {
+			// System.out.print(alignedDifferences.get(i).get(j) + "\t");
+			// }
+			// System.out.println();
+			// }
+			// System.out.println();
+			// for(int i = 0; i < consensusDifferences.size(); i++){
+			// for (int j = 0; j < consensusDifferences.get(i).size(); j++) {
+			// System.out.print(consensusDifferences.get(i).get(j) + "\t");
+			// }
+			// System.out.println();
+			// }
+			for (int i = 0; i < consensusSequence.length(); i++) {
+				System.out.print(consensusSequence.charAt(i));
+			}
+			System.out.println();
+
+		} catch (IOException | IllegalArgumentException | IllegalStateException | RejectedExecutionException
+				| InterruptedException | ExecutionException e) {
+		}
+		return consensusDifferences;
 	}
 
 	private double[] decode(double[] probabilities, Comparison comparison) {
@@ -228,8 +382,10 @@ public class Document {
 				if (j < flatDifferences.get(i).size()) {
 					// System.out.print(flatDifferences.get(i).get(j) + " " +
 					// weights.get(i) + "\t");
-					sum += flatDifferences.get(i).get(j) * weights.get(i);
-					count++;
+					if(flatDifferences.get(i).get(j) != -1){
+						sum += flatDifferences.get(i).get(j) * weights.get(i);
+						count++;
+					}
 				}
 			}
 			averagesAcrossPages[j] = sum / (double) count;
@@ -243,7 +399,7 @@ public class Document {
 
 		// System.out.println(averagesAcrossPages.length);
 		// for (int i = 0; i < averagesAcrossPages.length; i++) {
-		// System.out.println(i + " " + averagesAcrossPages[i] + " ");
+		// System.out.print(/* i + " " + */ averagesAcrossPages[i] + "\t");
 		// }
 		// System.out.println();
 
@@ -322,6 +478,15 @@ public class Document {
 			// System.out.println("diff: " + diff.size());
 			flatDifferences.add(diff);
 		}
+		
+		// for(int i= 0; i<flatDifferences.size(); i++){
+		// for(int j = 0; j< flatDifferences.get(i).size(); j++){
+		// System.out.print(flatDifferences.get(i).get(j) + "\t");
+		// }
+		// System.out.println();
+		// }
+		// System.out.println();
+		
 		return flatDifferences;
 	}
 
