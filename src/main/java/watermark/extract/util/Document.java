@@ -155,9 +155,8 @@ public class Document {
 		List<List<Integer>> differences = getDifferences(lengthsO, lengthsW, lengthsOriginal, lengthsWatermarked);
 
 		// ALIGN
-		// List<int[][]> diff = getDiff(lengthsO, lengthsW, lengthsOriginal,
-		// lengthsWatermarked);
-		// List<List<Integer>> alignedDifferences = align(diff, differences);
+		List<int[][]> diff = getDiff(lengthsO, lengthsW, lengthsOriginal, lengthsWatermarked);
+		differences = align(diff, differences);
 
 		// GET WEIGHTS
 		List<Double> weights = getWeights(lengthsOriginal, lengthsWatermarked, lengthsO, lengthsW);
@@ -228,11 +227,13 @@ public class Document {
 						if (maxSpaceLengthInLine * 0.5 < differences.get(i)[j][k]) {
 							// this is a long space (1)
 							sequenceInPage += "A";
-							// System.out.print(differences.get(i)[j][k] + "A\t");
+							// System.out.print(differences.get(i)[j][k] +
+							// "A\t");
 						} else {
 							// this is a short space (0)
 							sequenceInPage += "T";
-							// System.out.print(differences.get(i)[j][k] + "T\t");
+							// System.out.print(differences.get(i)[j][k] +
+							// "T\t");
 						}
 					}
 					// sequenceInPage += "\t";
@@ -257,10 +258,10 @@ public class Document {
 			List<String> pages = new ArrayList<>();
 			while ((line = reader.readLine()) != null) {
 				pages.add(line);
-//				System.out.println(line);
+				// System.out.println(line);
 			}
-			
-			//align differences according to multialign
+
+			// align differences according to multialign
 			System.out.println();
 			List<List<Integer>> alignedDifferences = new ArrayList<>();
 
@@ -279,14 +280,14 @@ public class Document {
 			}
 
 			// prepare for merge according to consensus sequence
-//			System.out.println();
+			// System.out.println();
 			String consensusSequence = pages.get(pages.size() - 1);
 
 			for (int i = 0; i < alignedDifferences.size(); i++) {
 				List<Integer> alignedLineConsensus = new ArrayList<>();
 				for (int j = 0; j < consensusSequence.length(); j++) {
 					if (consensusSequence.charAt(j) != '-') {
-						if(j < alignedDifferences.get(i).size()){
+						if (j < alignedDifferences.get(i).size()) {
 							alignedLineConsensus.add(alignedDifferences.get(i).get(j));
 						} else {
 							alignedLineConsensus.add(-1);
@@ -295,7 +296,7 @@ public class Document {
 				}
 				consensusDifferences.add(alignedLineConsensus);
 			}
-			
+
 			// print
 			// for(int i = 0; i < alignedDifferences.size(); i++){
 			// for (int j = 0; j < alignedDifferences.get(i).size(); j++) {
@@ -382,7 +383,7 @@ public class Document {
 				if (j < flatDifferences.get(i).size()) {
 					// System.out.print(flatDifferences.get(i).get(j) + " " +
 					// weights.get(i) + "\t");
-					if(flatDifferences.get(i).get(j) != -1){
+					if (flatDifferences.get(i).get(j) != -1) {
 						sum += flatDifferences.get(i).get(j) * weights.get(i);
 						count++;
 					}
@@ -478,7 +479,7 @@ public class Document {
 			// System.out.println("diff: " + diff.size());
 			flatDifferences.add(diff);
 		}
-		
+
 		// for(int i= 0; i<flatDifferences.size(); i++){
 		// for(int j = 0; j< flatDifferences.get(i).size(); j++){
 		// System.out.print(flatDifferences.get(i).get(j) + "\t");
@@ -486,7 +487,7 @@ public class Document {
 		// System.out.println();
 		// }
 		// System.out.println();
-		
+
 		return flatDifferences;
 	}
 

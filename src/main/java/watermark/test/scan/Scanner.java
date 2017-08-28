@@ -13,7 +13,7 @@ import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
 public class Scanner {
 
-	public void scan(String WORKING_LOCATION, String documentName, double StdDev, int likelihood, int sizeOfSmear) {
+	public void scan(String WORKING_LOCATION, String documentName, double StdDev, int likelihood, int sizeOfSmear, int rate) {
 		String watermarkedDocument = WORKING_LOCATION + documentName.substring(0, documentName.length() - 4) + "_W.pdf";
 
 		System.out.println(watermarkedDocument);
@@ -24,8 +24,8 @@ public class Scanner {
 			PDFRenderer pdfRenderer = new PDFRenderer(document);
 			for (int page = 0; page < document.getNumberOfPages(); ++page) {
 
-				BufferedImage bim = addSmearsParse(100, 10,
-						addSmearsParse(150, 40, pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY)));
+				BufferedImage bim = 
+						addSmearsParse(rate, 10, pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY));
 
 //				BufferedImage bim = addSmearsPoint(40, pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY));
 //				BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.GRAY);

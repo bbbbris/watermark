@@ -1,5 +1,7 @@
 package watermark.test.common;
 
+import java.io.PrintWriter;
+
 public class Comparison {
 
 	private int[] embeddedID;
@@ -62,7 +64,7 @@ public class Comparison {
 		}
 	}
 
-	public void compare() {
+	public void compare(PrintWriter writer) {
 		// System.out.println(embeddedID.length);
 		// System.out.println(detectedID.length + "\n");
 		//
@@ -72,14 +74,16 @@ public class Comparison {
 		// System.out.println(embeddedLDPC.length);
 		// System.out.println(detectedLDPC.length + "\n");
 
-		compareID();
+		compareID(writer);
 
-		compareHadamard();
+		compareHadamard(writer);
 
-		compareLDPC();
+		compareLDPC(writer);
+		
+		writer.print("\n");
 	}
 
-	private void compareID() {
+	private int compareID(PrintWriter writer) {
 		int errorCountID = 0;
 		for (int i = 0; i < detectedID.length && i < embeddedID.length; i++) {
 			if (detectedID[i] != embeddedID[i]) {
@@ -87,9 +91,12 @@ public class Comparison {
 			}
 		}
 		System.out.println("ID errors: " + errorCountID);
+		writer.print(errorCountID + "\t");
+		
+		return errorCountID;
 	}
 
-	private void compareHadamard() {
+	private void compareHadamard(PrintWriter writer) {
 		int errorCountHadamard = 0;
 		for (int i = 0; i < detectedHadamard.length; i++) {
 			if (detectedHadamard[i] != embeddedHadamard[i]) {
@@ -97,9 +104,10 @@ public class Comparison {
 			}
 		}
 		System.out.println("Hadamard errors: " + errorCountHadamard);
+		writer.print(errorCountHadamard + "\t");
 	}
 
-	private void compareLDPC() {
+	private void compareLDPC(PrintWriter writer) {
 		int errorCountLDPC = 0;
 		for (int i = 0; i < detectedLDPC.length; i++) {
 			if ((int) Math.round(detectedLDPC[i]) != (int) embeddedLDPC[i]) {
@@ -108,6 +116,7 @@ public class Comparison {
 			}
 		}
 		System.out.println("LDPC errors: " + errorCountLDPC);
+		writer.print(errorCountLDPC + "\t");
 	}
 
 }
