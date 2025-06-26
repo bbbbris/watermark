@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>watermark</name>
-	<comment></comment>
+	<name>"water_circuito"</name>
+	<comment>configuracion del proyecto</comment>
 	<projects>
 	</projects>
 	<buildSpec>
@@ -16,8 +16,10 @@
 			</arguments>
 		</buildCommand>
 	</buildSpec>
-	<natures>
+	<natures> 
+        <!--Natures del proyecto-->
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.m2e.core.maven2Nature</nature>
 	</natures>
-</projectDescription>
+</projectDescription>water Circuito</description>
+</proyecto>
